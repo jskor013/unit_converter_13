@@ -1,0 +1,226 @@
+project:
+  name: "unit_converter_13"
+  language: "C++"
+  standard: "C++17_or_newer"
+  purpose: "Length unit converter for practicing TDD, BCE layering, SRP, and OCP."
+  domain:
+    base_unit: "meter"
+    supported_initial_units:
+      - "meter"
+      - "feet"
+      - "yard"
+
+code_style:
+  formatter: "clang-format"
+  standard: "C++17_or_newer"
+  naming:
+    types: "PascalCase"
+    functions: "camelCase"
+    variables: "camelCase"
+    constants: "kPascalCase"
+    files: "snake_case"
+    test_cases: "behavior_and_invariant_based"
+  headers_and_sources:
+    principle: "Separate declarations in headers from implementations in source files."
+    headers:
+      - "Use include guards or #pragma once consistently."
+      - "Expose the minimum public contract required by other layers."
+      - "Do not place non-template function implementations in headers."
+    sources:
+      - "Place implementation details in .cpp files."
+      - "Keep local helper functions internal to the translation unit."
+  formatting:
+    indentation: "Use clang-format defaults configured for the project."
+    includes: "Group standard library includes before project includes."
+    comments: "Use comments only for non-obvious rules, contracts, or invariants."
+
+architecture:
+  pattern: "Boundary-Control-Entity"
+  layers:
+    boundary:
+      responsibility: "Parse external input, validate boundary schema, format output, and translate errors."
+      must_not:
+        - "Perform conversion math."
+        - "Own unit ratio rules."
+        - "Read or write persistence directly."
+    control:
+      responsibility: "Coordinate use cases between boundary, entity, and data ports."
+      must_not:
+        - "Contain console formatting details."
+        - "Hard-code unit conversion ratios."
+        - "Depend on concrete file storage."
+    entity:
+      responsibility: "Own unit definitions, conversion invariants, registry rules, and conversion results."
+      must_not:
+        - "Use std::cin or std::cout."
+        - "Know JSON, CSV, table, or file formats."
+        - "Depend on boundary or infrastructure code."
+  dependency_direction:
+    - "boundary -> control"
+    - "control -> entity"
+    - "control -> data_port"
+    - "data_adapter -> data_port"
+  allowed_cross_layer_calls:
+    - "Boundary may call Control contracts."
+    - "Control may call Entity contracts and Data Port contracts."
+    - "Entity may call no outer layer."
+    - "Data Adapter may implement Data Port contracts."
+
+tdd_rules:
+  red_phase:
+    description: "Define a failing test before implementation."
+    rules:
+      - "Every test title must name the protected invariant or observable contract."
+      - "Cover parsing, negative and zero values, unsupported units, ratio accuracy, dynamic registration, and output serialization before implementation."
+      - "Each test must assert one primary observable behavior."
+      - "Failure paths must assert a stable error code or stable message pattern."
+      - "Ratio tests must use an explicit numeric tolerance."
+    must_not:
+      - "Do not implement production behavior before a failing test exists."
+      - "Do not write only success-path tests."
+      - "Do not weaken expected values to match a broken implementation."
+      - "Do not name tests after private implementation details."
+  green_phase:
+    description: "Make the current failing test pass with the smallest behavior change."
+    rules:
+      - "Change only what is needed for the currently failing test."
+      - "Keep boundary parsing, control orchestration, and entity rules separate."
+      - "Preserve existing meter, feet, and yard conversion results when adding units."
+      - "Run the relevant Catch2 tests after each behavior change."
+    must_not:
+      - "Do not add untested features opportunistically."
+      - "Do not bypass validation with defaults."
+      - "Do not add console or file concerns to entity code."
+      - "Do not hide conversion errors."
+  refactor_phase:
+    description: "Improve structure only after all related tests are green."
+    rules:
+      - "All relevant tests must pass before refactoring starts."
+      - "Refactoring must preserve public contracts, error codes, and message patterns."
+      - "Replace repeated ratio logic with one canonical conversion rule."
+      - "Move responsibilities to the correct BCE layer when a layer violation is found."
+      - "Run regression tests after refactoring."
+    must_not:
+      - "Do not refactor while tests are red."
+      - "Do not mix behavior changes and refactoring in one step."
+      - "Do not introduce abstractions without removing real duplication or dependency pressure."
+      - "Do not change public contracts without updating RED tests first."
+
+testing:
+  framework: "Catch2"
+  style: "AAA"
+  aaa_rules:
+    arrange: "Create inputs, registries, fixtures, and mocks explicitly."
+    act: "Call one public contract under test."
+    assert: "Check observable result, error code, or invariant."
+  fixture_rules:
+    - "Use fixtures only when at least two tests share setup."
+    - "Fixtures must not hide the value, unit, ratio, or expected result being tested."
+    - "Use in-memory data adapters for domain and control tests."
+    - "Use file-backed adapters only in data and integration tests."
+    - "Reset mutable registries before each test case."
+  coverage:
+    domain:
+      line: 95
+      branch: 90
+    boundary:
+      line: 90
+      error_code_cases: 100
+    control:
+      line: 90
+      use_case_paths: 100
+    data:
+      line: 85
+      config_failure_cases: 100
+    integration:
+      normal_paths_minimum: 3
+      failure_paths_minimum: 5
+  required_categories:
+    - "parsing"
+    - "negative_and_zero_values"
+    - "unsupported_units"
+    - "ratio_accuracy"
+    - "dynamic_registration"
+    - "json_serialization"
+    - "csv_serialization"
+    - "table_serialization"
+
+forbidden:
+  - pattern: "Leaving std::cout or std::cerr debug prints in non-boundary code."
+    reason: "Debug output makes tests noisy and couples domain behavior to console I/O."
+    alternative: "Return structured results or errors and let boundary formatting handle presentation."
+  - pattern: "Hard-coding magic conversion numbers throughout the codebase."
+    reason: "Duplicated ratios break OCP and make ratio changes unsafe."
+    alternative: "Store ratios in UnitDefinition objects loaded through a registry or data port."
+  - pattern: "Using catch(...) to swallow errors without preserving failure information."
+    reason: "Silent failures hide invalid input, invalid configuration, and conversion defects."
+    alternative: "Catch specific exceptions and map them to stable error codes."
+  - pattern: "Putting non-template implementations in header files."
+    reason: "Header implementations increase coupling, rebuild cost, and accidental dependency spread."
+    alternative: "Keep declarations in headers and place implementations in .cpp files."
+  - pattern: "Using mutable global state for unit registries, configuration, or output format."
+    reason: "Global state causes test order dependence and hidden coupling."
+    alternative: "Pass registries, repositories, and formatters through explicit constructors or function parameters."
+  - pattern: "Using floating-point equality for conversion assertions."
+    reason: "Decimal conversion can produce representation error."
+    alternative: "Assert numeric results with an explicit tolerance."
+  - pattern: "Adding unit-specific if/else chains for every new conversion."
+    reason: "Unit-specific branching violates OCP when new units are registered."
+    alternative: "Convert through the canonical meter ratio stored in the unit registry."
+  - pattern: "Parsing user input inside entity classes."
+    reason: "Entity code must own domain rules, not external input syntax."
+    alternative: "Parse in boundary code and pass validated values to control or entity contracts."
+
+file_structure:
+  # boundary/
+  #   input parsing, request validation, output serialization, error response mapping
+  boundary:
+    responsibility: "External input and output contracts."
+    allowed_files:
+      - "input_parser"
+      - "output_formatter"
+      - "error_presenter"
+  # control/
+  #   use case orchestration and calls into entity plus data ports
+  control:
+    responsibility: "Application use cases and dependency coordination."
+    allowed_files:
+      - "conversion_use_case"
+      - "unit_registration_use_case"
+  # entity/
+  #   domain values, unit definitions, registries, conversion rules, invariants
+  entity:
+    responsibility: "Pure domain model and conversion invariants."
+    allowed_files:
+      - "length_value"
+      - "unit_definition"
+      - "unit_registry"
+      - "conversion_result"
+      - "conversion_rule"
+  # tests/
+  #   Catch2 tests grouped by layer and behavior category
+  tests:
+    responsibility: "Catch2 RED, GREEN, regression, and integration tests."
+    groups:
+      - "boundary"
+      - "control"
+      - "entity"
+      - "data"
+      - "integration"
+
+ai_behavior:
+  layer_rules:
+    - "Do not introduce layer violations."
+    - "Do not move parsing, formatting, or file concerns into entity code."
+    - "Do not make boundary code depend on concrete data adapters."
+    - "When a dependency is needed across layers, introduce or use an explicit contract."
+  tdd_rules:
+    - "Write or update Catch2 tests before production behavior."
+    - "Keep RED tests focused on observable contracts and invariants."
+    - "Implement only enough behavior to reach GREEN."
+    - "Refactor only after the relevant tests are GREEN."
+  review_rules:
+    - "Reject changes that hard-code new conversion ratios outside unit definitions."
+    - "Reject changes that weaken input validation or error contracts."
+    - "Reject changes that make tests order-dependent."
+    - "Prefer small changes that preserve existing public contracts."
