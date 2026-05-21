@@ -10,6 +10,15 @@ project:
       - "feet"
       - "yard"
 
+workflow_documents:
+  branch_strategy: "docs/branch-strategy.md"
+  first_story_flow: "docs/stories/c03-meter-feet-yard-conversion.md"
+  rules:
+    - "Before planning, testing, implementing, refactoring, reporting, or backing up work, consult docs/branch-strategy.md."
+    - "For Story 3 meter/feet/yard conversion work, also consult docs/stories/c03-meter-feet-yard-conversion.md."
+    - "Keep RED, GREEN, and REFACTOR work separated by branch and PR according to the documented strategy."
+    - "Do not merge failing RED work into main; use RED or red/* branches for failing contract tests."
+
 code_style:
   formatter: "clang-format"
   standard: "C++17_or_newer"
@@ -219,6 +228,8 @@ ai_behavior:
     - "Keep RED tests focused on observable contracts and invariants."
     - "Implement only enough behavior to reach GREEN."
     - "Refactor only after the relevant tests are GREEN."
+    - "Follow docs/branch-strategy.md for RED, GREEN, and REFACTOR branch separation."
+    - "When working on Story 3, follow docs/stories/c03-meter-feet-yard-conversion.md."
   review_rules:
     - "Reject changes that hard-code new conversion ratios outside unit definitions."
     - "Reject changes that weaken input validation or error contracts."
