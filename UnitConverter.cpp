@@ -1,5 +1,7 @@
+#include "Converter.h"
+#include "ConverterInternal.h"
+
 #include <iostream>
-#include <sstream>
 #include <string>
 
 int main() {
@@ -27,26 +29,14 @@ int main() {
         return 1;
     }
 
-    double meterValue = 0.0;
-
-    if (unit == "meter") {
-        meterValue = value;
-    } else if (unit == "feet") {
-        meterValue = value / 3.28084;
-    } else if (unit == "yard") {
-        meterValue = value / 1.09361;
-    } else {
+    if (!isKnownUnit(unit)) {
         std::cerr << "Unknown unit: " << unit << std::endl;
         return 1;
     }
 
-    double inMeters = meterValue;
-    double inFeet = meterValue * 3.28084;
-    double inYards = meterValue * 1.09361;
-
-    std::cout << value << " " << unit << " = " << inMeters << " meter" << std::endl;
-    std::cout << value << " " << unit << " = " << inFeet << " feet" << std::endl;
-    std::cout << value << " " << unit << " = " << inYards << " yard" << std::endl;
+    for (const auto& result : convertAll(unit, value)) {
+        std::cout << value << " " << unit << " = " << result.value << " " << result.unit << std::endl;
+    }
 
     return 0;
 }
