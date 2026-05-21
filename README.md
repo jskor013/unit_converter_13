@@ -184,7 +184,7 @@ ctest --test-dir build
 
 ### 결함 목록 연결
 
-- [ ] defect_list.md 생성 및 발견 결함 기록
+- [x] [defect_list.md](./defect_list.md) 생성 및 발견 결함 기록
 - [ ] 모든 결함 수정 후 회귀 테스트 통과 확인
 
 ## 설정 파일 (JSON/YAML)
