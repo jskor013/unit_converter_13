@@ -1,27 +1,58 @@
-#include <fstream>
-#include <iomanip>
-#include <stdexcept>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "Converter.h"
+#include "ConverterInternal.h"
 
-struct ConversionResult {
-    std::string unit;
-    double value{};
-};
+#include <fstream>
 
 namespace {
 
 constexpr double kMeterToFeet = 3.28084;
 constexpr double kMeterToYard = 1.09361;
-std::string registeredUnitName;
-double registeredRatioToMeter = 0.0;
+
+struct ConversionRule {
+    const char* unit;
+    double unitsPerMeter;
+};
+
+struct RegisteredUnit {
+    std::string name;
+    double ratioToMeter = 0.0;
+};
+
+constexpr ConversionRule kDefaultRules[] = {
+    {"meter", 1.0},
+    {"feet", kMeterToFeet},
+    {"yard", kMeterToYard},
+};
+
+RegisteredUnit registeredUnit;
+
+const ConversionRule* findDefaultRule(const std::string& unit) {
+    for (const auto& rule : kDefaultRules) {
+        if (unit == rule.unit) {
+            return &rule;
+        }
+    }
+
+    return nullptr;
+}
+
+bool isKnownInputUnit(const std::string& unit) {
+    return findDefaultRule(unit) != nullptr || unit == registeredUnit.name;
+}
+
+double convertDefaultUnit(const ConversionRule& fromRule, double value, const ConversionRule& toRule) {
+    const double valueInMeters = value / fromRule.unitsPerMeter;
+    return valueInMeters * toRule.unitsPerMeter;
+}
 
 } // namespace
 
+bool isKnownUnit(const std::string& unit) {
+    return isKnownInputUnit(unit);
+}
+
 void registerUnit(const std::string& name, double ratioToMeter) {
-    registeredUnitName = name;
-    registeredRatioToMeter = ratioToMeter;
+    registeredUnit = {name, ratioToMeter};
 }
 
 void loadConfig(const std::string& path) {
@@ -39,69 +70,27 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
         return value;
     }
 
-    if (fromUnit == "meter" && toUnit == "feet") {
-        return value * kMeterToFeet;
+    const auto* fromRule = findDefaultRule(fromUnit);
+    const auto* toRule = findDefaultRule(toUnit);
+    if (fromRule != nullptr && toRule != nullptr) {
+        return convertDefaultUnit(*fromRule, value, *toRule);
     }
 
-    if (fromUnit == "meter" && toUnit == "yard") {
-        return value * kMeterToYard;
-    }
-
-    if (fromUnit == "feet" && toUnit == "meter") {
-        return value / kMeterToFeet;
-    }
-
-    if (fromUnit == "feet" && toUnit == "yard") {
-        return (value / kMeterToFeet) * kMeterToYard;
-    }
-
-    if (fromUnit == "yard" && toUnit == "meter") {
-        return value / kMeterToYard;
-    }
-
-    if (fromUnit == "yard" && toUnit == "feet") {
-        return (value / kMeterToYard) * kMeterToFeet;
-    }
-
-    if (fromUnit == registeredUnitName && toUnit == "meter") {
-        return value * registeredRatioToMeter;
+    if (fromUnit == registeredUnit.name && toUnit == "meter") {
+        return value * registeredUnit.ratioToMeter;
     }
 
     return 0.0;
 }
 
 std::vector<ConversionResult> convertAll(const std::string& fromUnit, double value) {
-    return {
-        {"meter", convert(fromUnit, value, "meter")},
-        {"feet", convert(fromUnit, value, "feet")},
-        {"yard", convert(fromUnit, value, "yard")},
-    };
+    std::vector<ConversionResult> results;
+    results.reserve(sizeof(kDefaultRules) / sizeof(kDefaultRules[0]));
+
+    for (const auto& rule : kDefaultRules) {
+        results.push_back({rule.unit, convert(fromUnit, value, rule.unit)});
+    }
+
+    return results;
 }
 
-std::string convertInput(const std::string& input, const std::string& toUnit) {
-    const auto delimiter = input.find(':');
-    if (delimiter == std::string::npos) {
-        throw std::invalid_argument("missing unit:value delimiter");
-    }
-
-    const auto fromUnit = input.substr(0, delimiter);
-    if (fromUnit != "meter" && fromUnit != "feet" && fromUnit != "yard" && fromUnit != registeredUnitName) {
-        throw std::invalid_argument("unknown unit");
-    }
-
-    const auto valueText = input.substr(delimiter + 1);
-    std::size_t parsedLength = 0;
-    const auto value = std::stod(valueText, &parsedLength);
-    if (parsedLength != valueText.size()) {
-        throw std::invalid_argument("invalid number");
-    }
-
-    if (value < 0.0) {
-        throw std::invalid_argument("negative value");
-    }
-
-    std::ostringstream output;
-    output << valueText << ' ' << fromUnit << " = " << std::fixed << std::setprecision(6)
-           << convert(fromUnit, value, toUnit) << ' ' << toUnit;
-    return output.str();
-}

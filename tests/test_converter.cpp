@@ -1,21 +1,10 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "../Converter.h"
+
 #include <filesystem>
 #include <fstream>
-#include <string>
-#include <vector>
-
-struct ConversionResult {
-    std::string unit;
-    double value{};
-};
-
-double convert(const std::string& fromUnit, double value, const std::string& toUnit);
-std::vector<ConversionResult> convertAll(const std::string& fromUnit, double value);
-void registerUnit(const std::string& name, double ratioToMeter);
-void loadConfig(const std::string& path);
-std::string convertInput(const std::string& input, const std::string& toUnit);
 
 TEST_CASE("TC-B-01 convert meter to feet returns correct ratio", "[domain]") {
     using Catch::Approx;
