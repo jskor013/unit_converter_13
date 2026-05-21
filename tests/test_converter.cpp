@@ -10,3 +10,9 @@ TEST_CASE("TC-B-01 convert meter to feet returns correct ratio", "[domain]") {
 
     REQUIRE(convert("meter", 2.5, "feet") == Approx(8.20210).epsilon(1e-5));
 }
+
+TEST_CASE("TC-B-02 convert meter to yard returns correct ratio", "[domain]") {
+    using Catch::Approx;
+
+    REQUIRE(convert("meter", 2.5, "yard") == Approx(2.734025).epsilon(1e-5));
+}
