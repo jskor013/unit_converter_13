@@ -28,5 +28,12 @@ if(BUILD_TESTING)
     )
     target_link_libraries(unit_converter_contract_tests PRIVATE Catch2::Catch2WithMain)
 
+    add_executable(test_converter
+        Converter.cpp
+        tests/test_converter.cpp
+    )
+    target_link_libraries(test_converter PRIVATE Catch2::Catch2WithMain)
+
     add_test(NAME unit_converter_contract_tests COMMAND unit_converter_contract_tests)
+    add_test(NAME test_converter COMMAND test_converter)
 endif()
