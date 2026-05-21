@@ -272,6 +272,7 @@ source_amount,source_unit,target_unit,converted_amount
 
 ## 기여 가이드 (Contributing)
 
+- 브랜치 운영은 [docs/branch-strategy.md](./docs/branch-strategy.md)의 Dual-Track RED-GREEN-REFACTOR 흐름을 따릅니다.
 - README 기준 비율은 계약 테스트 없이 변경하지 않습니다.
 - 오류 코드와 오류 메시지 패턴은 계약 테스트 없이 변경하지 않습니다.
 - 입력 형식 `<unit>:<amount>`는 계약 테스트 없이 변경하지 않습니다.

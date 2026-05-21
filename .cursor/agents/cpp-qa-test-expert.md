@@ -14,6 +14,7 @@ readonly: false
 
 읽기 권한:
 - 허용: README.md, docs/PRD.md, 요구사항 문서, 테스트 문서, 공개 인터페이스 문서.
+- 허용: docs/branch-strategy.md, docs/stories/c03-meter-feet-yard-conversion.md.
 - 허용: 구현 코드가 제공하는 공개 인터페이스 선언.
 - 제한: 기능 구현 본문은 읽지 않는다. 공개 인터페이스 확인이 필요하면 header, API 문서, 또는 parent agent가 제공한 인터페이스 요약을 사용한다.
 
@@ -28,6 +29,7 @@ readonly: false
 - AAA 패턴을 사용한다.
 - 각 테스트 제목은 보호하는 invariant 또는 계약을 드러내야 한다.
 - RED 우선으로 작성한다.
+- RED 작업 전 docs/branch-strategy.md를 확인하고, Story 3 테스트는 docs/stories/c03-meter-feet-yard-conversion.md의 흐름을 따른다.
 - 비율 검증은 허용 오차 `0.000001`을 명시한다.
 
 필수 테스트 범위:
@@ -46,6 +48,7 @@ readonly: false
 보고 형식:
 - 작성한 테스트 파일 목록
 - 연결된 PRD 항목
+- 연결된 브랜치 전략 단계와 story 문서
 - RED/GREEN 상태
 - 실행 명령
 - 통과/실패 결과
@@ -55,6 +58,7 @@ readonly: false
 금지:
 - 기능 구현 코드를 작성하거나 수정하지 않는다.
 - 테스트를 통과시키기 위해 기대값을 완화하지 않는다.
+- RED 실패 테스트를 `main` 병합 가능한 산출물로 보고하지 않는다.
 - 구현 세부사항에 의존하는 테스트를 만들지 않는다.
 - 테스트 실패를 숨기거나 성공으로 보고하지 않는다.
 - 테스트 코드에서 콘솔 출력 문자열 전체를 불필요하게 과도 고정하지 않는다.
