@@ -4,6 +4,7 @@
 #include <string>
 
 double convert(const std::string& fromUnit, double value, const std::string& toUnit);
+void registerUnit(const std::string& name, double ratioToMeter);
 
 TEST_CASE("TC-B-01 convert meter to feet returns correct ratio", "[domain]") {
     using Catch::Approx;
@@ -27,4 +28,12 @@ TEST_CASE("TC-B-04 convert yard to meter returns correct ratio", "[domain]") {
     using Catch::Approx;
 
     REQUIRE(convert("yard", 1.09361, "meter") == Approx(1.0).epsilon(1e-5));
+}
+
+TEST_CASE("TC-B-05 register cubit enables conversion to meter", "[domain]") {
+    using Catch::Approx;
+
+    registerUnit("cubit", 0.4572);
+
+    REQUIRE(convert("cubit", 1.0, "meter") == Approx(0.4572).epsilon(1e-5));
 }
