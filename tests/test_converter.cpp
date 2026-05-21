@@ -8,6 +8,7 @@
 double convert(const std::string& fromUnit, double value, const std::string& toUnit);
 void registerUnit(const std::string& name, double ratioToMeter);
 void loadConfig(const std::string& path);
+std::string convertInput(const std::string& input, const std::string& toUnit);
 
 TEST_CASE("TC-B-01 convert meter to feet returns correct ratio", "[domain]") {
     using Catch::Approx;
@@ -53,4 +54,8 @@ TEST_CASE("TC-B-06 loadConfig valid path applies unit ratio", "[domain]") {
     loadConfig(path.string());
 
     REQUIRE(convert("fathom", 1.0, "meter") == Approx(1.8288).epsilon(1e-5));
+}
+
+TEST_CASE("TC-A-01 convertInput normal meter input returns formatted conversion", "[boundary]") {
+    REQUIRE(convertInput("meter:2.5", "feet") == "2.5 meter = 8.202100 feet");
 }

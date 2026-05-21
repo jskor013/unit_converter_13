@@ -1,4 +1,6 @@
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 namespace {
@@ -47,4 +49,16 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
     }
 
     return 0.0;
+}
+
+std::string convertInput(const std::string& input, const std::string& toUnit) {
+    const auto delimiter = input.find(':');
+    const auto fromUnit = input.substr(0, delimiter);
+    const auto valueText = input.substr(delimiter + 1);
+    const auto value = std::stod(valueText);
+
+    std::ostringstream output;
+    output << valueText << ' ' << fromUnit << " = " << std::fixed << std::setprecision(6)
+           << convert(fromUnit, value, toUnit) << ' ' << toUnit;
+    return output.str();
 }
