@@ -59,6 +59,10 @@ std::string convertInput(const std::string& input, const std::string& toUnit) {
     }
 
     const auto fromUnit = input.substr(0, delimiter);
+    if (fromUnit != "meter" && fromUnit != "feet" && fromUnit != "yard" && fromUnit != registeredUnitName) {
+        throw std::invalid_argument("unknown unit");
+    }
+
     const auto valueText = input.substr(delimiter + 1);
     const auto value = std::stod(valueText);
     if (value < 0.0) {
