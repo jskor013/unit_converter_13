@@ -71,3 +71,7 @@ TEST_CASE("TC-A-03 convertInput negative value throws invalid_argument", "[bound
 TEST_CASE("TC-A-04 convertInput unknown unit throws invalid_argument", "[boundary]") {
     REQUIRE_THROWS_AS(convertInput("parsec:1.0", "feet"), std::invalid_argument);
 }
+
+TEST_CASE("TC-A-05 convertInput malformed decimal throws invalid_argument", "[boundary]") {
+    REQUIRE_THROWS_AS(convertInput("meter:2.5.1", "feet"), std::invalid_argument);
+}

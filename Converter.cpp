@@ -64,7 +64,12 @@ std::string convertInput(const std::string& input, const std::string& toUnit) {
     }
 
     const auto valueText = input.substr(delimiter + 1);
-    const auto value = std::stod(valueText);
+    std::size_t parsedLength = 0;
+    const auto value = std::stod(valueText, &parsedLength);
+    if (parsedLength != valueText.size()) {
+        throw std::invalid_argument("invalid number");
+    }
+
     if (value < 0.0) {
         throw std::invalid_argument("negative value");
     }
