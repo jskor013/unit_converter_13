@@ -3,6 +3,12 @@
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <vector>
+
+struct ConversionResult {
+    std::string unit;
+    double value{};
+};
 
 namespace {
 
@@ -29,6 +35,10 @@ void loadConfig(const std::string& path) {
 }
 
 double convert(const std::string& fromUnit, double value, const std::string& toUnit) {
+    if (fromUnit == toUnit) {
+        return value;
+    }
+
     if (fromUnit == "meter" && toUnit == "feet") {
         return value * kMeterToFeet;
     }
@@ -50,6 +60,14 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
     }
 
     return 0.0;
+}
+
+std::vector<ConversionResult> convertAll(const std::string& fromUnit, double value) {
+    return {
+        {"meter", convert(fromUnit, value, "meter")},
+        {"feet", convert(fromUnit, value, "feet")},
+        {"yard", convert(fromUnit, value, "yard")},
+    };
 }
 
 std::string convertInput(const std::string& input, const std::string& toUnit) {

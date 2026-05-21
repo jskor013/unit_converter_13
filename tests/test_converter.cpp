@@ -4,8 +4,15 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
+
+struct ConversionResult {
+    std::string unit;
+    double value{};
+};
 
 double convert(const std::string& fromUnit, double value, const std::string& toUnit);
+std::vector<ConversionResult> convertAll(const std::string& fromUnit, double value);
 void registerUnit(const std::string& name, double ratioToMeter);
 void loadConfig(const std::string& path);
 std::string convertInput(const std::string& input, const std::string& toUnit);
@@ -32,6 +39,20 @@ TEST_CASE("TC-B-04 convert yard to meter returns correct ratio", "[domain]") {
     using Catch::Approx;
 
     REQUIRE(convert("yard", 1.09361, "meter") == Approx(1.0).epsilon(1e-5));
+}
+
+TEST_CASE("TC-B-04 convertAll meter returns all default unit conversions", "[domain]") {
+    using Catch::Approx;
+
+    const auto results = convertAll("meter", 1.0);
+
+    REQUIRE(results.size() == 3);
+    REQUIRE(results[0].unit == "meter");
+    REQUIRE(results[0].value == Approx(1.0).epsilon(1e-5));
+    REQUIRE(results[1].unit == "feet");
+    REQUIRE(results[1].value == Approx(3.28084).epsilon(1e-5));
+    REQUIRE(results[2].unit == "yard");
+    REQUIRE(results[2].value == Approx(1.09361).epsilon(1e-5));
 }
 
 TEST_CASE("TC-B-05 register cubit enables conversion to meter", "[domain]") {
