@@ -100,3 +100,9 @@ TEST_CASE("TC-A-05 convertInput malformed decimal throws invalid_argument", "[bo
 TEST_CASE("TC-A-06 convertInput preserves original feet value and unit", "[boundary]") {
     REQUIRE(convertInput("feet:3.28084", "yard") == "3.28084 feet = 1.093610 yard");
 }
+
+TEST_CASE("TC-B-08 convert yard to feet uses meter hub ratio", "[domain]") {
+    using Catch::Approx;
+
+    REQUIRE(convert("yard", 1.09361, "feet") == Approx(3.28084).epsilon(1e-5));
+}
