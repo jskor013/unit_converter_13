@@ -2,6 +2,8 @@
 #include "ConverterInternal.h"
 
 #include <fstream>
+#include <map>
+#include <stdexcept>
 
 namespace {
 
@@ -10,49 +12,70 @@ constexpr double kMeterToYard = 1.09361;
 
 struct ConversionRule {
     const char* unit;
-    double unitsPerMeter;
-};
-
-struct RegisteredUnit {
-    std::string name;
-    double ratioToMeter = 0.0;
+    double ratioToMeter;
 };
 
 constexpr ConversionRule kDefaultRules[] = {
     {"meter", 1.0},
-    {"feet", kMeterToFeet},
-    {"yard", kMeterToYard},
+    {"feet", 1.0 / kMeterToFeet},
+    {"yard", 1.0 / kMeterToYard},
 };
 
-RegisteredUnit registeredUnit;
-
-const ConversionRule* findDefaultRule(const std::string& unit) {
-    for (const auto& rule : kDefaultRules) {
-        if (unit == rule.unit) {
-            return &rule;
+class UnitRegistry {
+public:
+    UnitRegistry() {
+        for (const auto& rule : kDefaultRules) {
+            registerRatio(rule.unit, rule.ratioToMeter);
         }
     }
 
-    return nullptr;
-}
+    void registerUnit(const std::string& name, double ratioToMeter) {
+        if (ratioToMeter <= 0.0) {
+            throw std::invalid_argument("unit ratio must be positive");
+        }
 
-bool isKnownInputUnit(const std::string& unit) {
-    return findDefaultRule(unit) != nullptr || unit == registeredUnit.name;
-}
+        registerRatio(name, ratioToMeter);
+    }
 
-double convertDefaultUnit(const ConversionRule& fromRule, double value, const ConversionRule& toRule) {
-    const double valueInMeters = value / fromRule.unitsPerMeter;
-    return valueInMeters * toRule.unitsPerMeter;
+    const double* findRatioToMeter(const std::string& unit) const {
+        const auto result = ratiosToMeter.find(unit);
+        if (result == ratiosToMeter.end()) {
+            return nullptr;
+        }
+
+        return &result->second;
+    }
+
+    const std::vector<std::string>& units() const {
+        return unitOrder;
+    }
+
+private:
+    void registerRatio(const std::string& name, double ratioToMeter) {
+        if (ratiosToMeter.find(name) == ratiosToMeter.end()) {
+            unitOrder.push_back(name);
+        }
+
+        ratiosToMeter[name] = ratioToMeter;
+    }
+
+    std::map<std::string, double> ratiosToMeter;
+    std::vector<std::string> unitOrder;
+};
+
+UnitRegistry& unitRegistry() {
+    static UnitRegistry registry;
+    return registry;
 }
 
 } // namespace
 
 bool isKnownUnit(const std::string& unit) {
-    return isKnownInputUnit(unit);
+    return unitRegistry().findRatioToMeter(unit) != nullptr;
 }
 
 void registerUnit(const std::string& name, double ratioToMeter) {
-    registeredUnit = {name, ratioToMeter};
+    unitRegistry().registerUnit(name, ratioToMeter);
 }
 
 void loadConfig(const std::string& path) {
@@ -70,14 +93,11 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
         return value;
     }
 
-    const auto* fromRule = findDefaultRule(fromUnit);
-    const auto* toRule = findDefaultRule(toUnit);
-    if (fromRule != nullptr && toRule != nullptr) {
-        return convertDefaultUnit(*fromRule, value, *toRule);
-    }
-
-    if (fromUnit == registeredUnit.name && toUnit == "meter") {
-        return value * registeredUnit.ratioToMeter;
+    const auto* fromRatioToMeter = unitRegistry().findRatioToMeter(fromUnit);
+    const auto* toRatioToMeter = unitRegistry().findRatioToMeter(toUnit);
+    if (fromRatioToMeter != nullptr && toRatioToMeter != nullptr) {
+        const double valueInMeters = value * *fromRatioToMeter;
+        return valueInMeters / *toRatioToMeter;
     }
 
     return 0.0;
@@ -85,10 +105,10 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
 
 std::vector<ConversionResult> convertAll(const std::string& fromUnit, double value) {
     std::vector<ConversionResult> results;
-    results.reserve(sizeof(kDefaultRules) / sizeof(kDefaultRules[0]));
+    results.reserve(unitRegistry().units().size());
 
-    for (const auto& rule : kDefaultRules) {
-        results.push_back({rule.unit, convert(fromUnit, value, rule.unit)});
+    for (const auto& unit : unitRegistry().units()) {
+        results.push_back({unit, convert(fromUnit, value, unit)});
     }
 
     return results;
