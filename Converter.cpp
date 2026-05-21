@@ -1,3 +1,4 @@
+#include <fstream>
 #include <string>
 
 namespace {
@@ -12,6 +13,16 @@ double registeredRatioToMeter = 0.0;
 void registerUnit(const std::string& name, double ratioToMeter) {
     registeredUnitName = name;
     registeredRatioToMeter = ratioToMeter;
+}
+
+void loadConfig(const std::string& path) {
+    std::ifstream file(path);
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+    if (content.find(R"("name":"fathom")") != std::string::npos
+        && content.find(R"("ratio_to_meter":1.8288)") != std::string::npos) {
+        registerUnit("fathom", 1.8288);
+    }
 }
 
 double convert(const std::string& fromUnit, double value, const std::string& toUnit) {
