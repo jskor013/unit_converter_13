@@ -20,5 +20,9 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
         return value / kMeterToFeet;
     }
 
+    if (fromUnit == "yard" && toUnit == "meter") {
+        return value / kMeterToYard;
+    }
+
     return 0.0;
 }
