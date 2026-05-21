@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(converter_core
     Converter.cpp
     ConverterBoundary.cpp
+    src/DecayingUnit.cpp
 )
 
 add_executable(UnitConverter UnitConverter.cpp)
@@ -39,6 +40,12 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test_converter PRIVATE converter_core Catch2::Catch2WithMain)
 
+    add_executable(test_decaying_unit
+        tests/test_decaying_unit.cpp
+    )
+    target_link_libraries(test_decaying_unit PRIVATE converter_core Catch2::Catch2WithMain)
+
     add_test(NAME unit_converter_contract_tests COMMAND unit_converter_contract_tests)
     add_test(NAME test_converter COMMAND test_converter)
+    add_test(NAME test_decaying_unit COMMAND test_decaying_unit)
 endif()
