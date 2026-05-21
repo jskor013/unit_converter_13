@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iomanip>
+#include <stdexcept>
 #include <sstream>
 #include <string>
 
@@ -53,6 +54,10 @@ double convert(const std::string& fromUnit, double value, const std::string& toU
 
 std::string convertInput(const std::string& input, const std::string& toUnit) {
     const auto delimiter = input.find(':');
+    if (delimiter == std::string::npos) {
+        throw std::invalid_argument("missing unit:value delimiter");
+    }
+
     const auto fromUnit = input.substr(0, delimiter);
     const auto valueText = input.substr(delimiter + 1);
     const auto value = std::stod(valueText);
