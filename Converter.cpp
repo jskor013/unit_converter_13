@@ -61,6 +61,9 @@ std::string convertInput(const std::string& input, const std::string& toUnit) {
     const auto fromUnit = input.substr(0, delimiter);
     const auto valueText = input.substr(delimiter + 1);
     const auto value = std::stod(valueText);
+    if (value < 0.0) {
+        throw std::invalid_argument("negative value");
+    }
 
     std::ostringstream output;
     output << valueText << ' ' << fromUnit << " = " << std::fixed << std::setprecision(6)

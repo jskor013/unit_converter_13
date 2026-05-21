@@ -63,3 +63,7 @@ TEST_CASE("TC-A-01 convertInput normal meter input returns formatted conversion"
 TEST_CASE("TC-A-02 convertInput without colon throws invalid_argument", "[boundary]") {
     REQUIRE_THROWS_AS(convertInput("2.5", "feet"), std::invalid_argument);
 }
+
+TEST_CASE("TC-A-03 convertInput negative value throws invalid_argument", "[boundary]") {
+    REQUIRE_THROWS_AS(convertInput("meter:-1.0", "feet"), std::invalid_argument);
+}
