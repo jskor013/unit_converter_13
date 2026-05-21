@@ -96,3 +96,7 @@ TEST_CASE("TC-A-04 convertInput unknown unit throws invalid_argument", "[boundar
 TEST_CASE("TC-A-05 convertInput malformed decimal throws invalid_argument", "[boundary]") {
     REQUIRE_THROWS_AS(convertInput("meter:2.5.1", "feet"), std::invalid_argument);
 }
+
+TEST_CASE("TC-A-06 convertInput preserves original feet value and unit", "[boundary]") {
+    REQUIRE(convertInput("feet:3.28084", "yard") == "3.28084 feet = 1.093610 yard");
+}
